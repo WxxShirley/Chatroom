@@ -138,8 +138,8 @@
 
 ### 服务端逻辑
 * 监听多个连接
-```python
-while True:
+  ```python
+  while True:
     reads, writes, errors = select.select(connections,[],[])
     for cur in reads:
         if cur == sock: #new connection
@@ -152,11 +152,11 @@ while True:
                     release(cur) # release this connection
                     continue
                handle(cur,data,rest)
-```
+   ```
 
 * handle函数处理
-```python
-def handle(conn, msg, rest):
+  ```python
+  def handle(conn, msg, rest):
     state = ""
     try:
         type = int(msg[0])
@@ -171,7 +171,7 @@ def handle(conn, msg, rest):
        ···
     ···   
 
-```
+  ```
 
 ### 客户端逻辑
 用户端开启时进入登陆界面，第一次进入欢迎界面时，与服务端连接并建立会话.登陆成功后，开启监听服务端发来的数据。
