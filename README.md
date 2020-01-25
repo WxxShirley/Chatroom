@@ -240,14 +240,16 @@
   * **friends**为待开发功能
  ![main_page](https://github.com/WxxShirley/Chatroom/blob/master/imgs/main_page.png)
  
-* 发送的内容多样化，包括文本信息、文件、表情
+* 发送的内容多样化，包括文本信息、文件、表情。
+  *其中tkinter无法显示emoji，因此我采用诸如 **[emoji-cake]** 的形式来表征一个emoji，目前可以发送的emoji较少，后期会再拓展。
   ![send_files](https://github.com/WxxShirley/Chatroom/blob/master/imgs/send_files.png)
   ![send_message](https://github.com/WxxShirley/Chatroom/blob/master/imgs/send_message.png)
 
   
 ## 未来工作
-待完善的功能
-- [ ]  用户间好友关系
+待完善的功能 
+*希望1月底可以完成💪
+- [ ] 用户间好友关系
 - [ ] 用户的个人信息中包括本地图片上传的头像
 - [ ] 实现群聊和私聊
  
