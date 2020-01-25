@@ -245,3 +245,10 @@
   ![send_message](https://github.com/WxxShirley/Chatroom/blob/master/imgs/send_message.png)
 
   
+## 未来工作
+待完善的功能
+ - [] 用户间好友关系
+ - [] 用户的个人信息中包括本地图片上传的头像
+ - [] 实现群聊和私聊
+ 
+ 
