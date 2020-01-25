@@ -74,14 +74,14 @@
 ## 整体架构
 ### 数据库关系模式
 * 用户信息
-  ```
+  ```sql
      CREATE TABLE USERINFO
        (USERNAME TEXT PRIMARY KEY NOT NULL,
        PASSWORD TEXT NOT NULL);
   ```
   
 * 聊天信息
-  ```
+  ```sql
      CREATE TABLE GROUP_CHAT_HISTORY
          ( ID TEXT PRIMARY KEY NOT NULL,
            SOURCE_USER TEXT NOT NULL,
@@ -92,7 +92,7 @@
    ```
 
 * 文件信息
-  ```
+  ```sql
      CREATE TABLE GROUP_FILE_HISTORY
         (ID TEXT PRIMARY KEY NOT NULL,
          SOURCE_USER TEXT NOT NULL,
@@ -106,7 +106,7 @@
  ### socket通信
  ``` method.py ```中包含以下socket方法
  * send - 发送消息（utf-8编码）格式，参数为socket, 消息头部, 消息内容
-   ```
+   ```python
    def send(socket,header,msg = b""):
     """
     :param socket: socket sending message
@@ -120,7 +120,7 @@
    ```
 
 * receive - 接收消息，根据```\n\n```分割头部和消息，utf-8解码后返回
-  ```
+  ```python
   def receive(sock):
     data = sock.recv(1024)
     for i in range(len(data)-1):
@@ -138,7 +138,7 @@
 
 ### 服务端逻辑
 * 监听多个连接
-```
+```python
 while True:
     reads, writes, errors = select.select(connections,[],[])
     for cur in reads:
@@ -155,7 +155,7 @@ while True:
 ```
 
 * handle函数处理
-```
+```python
 def handle(conn, msg, rest):
     state = ""
     try:
@@ -175,7 +175,7 @@ def handle(conn, msg, rest):
 
 ### 客户端逻辑
 用户端开启时进入登陆界面，第一次进入欢迎界面时，与服务端连接并建立会话.登陆成功后，开启监听服务端发来的数据。
- ```
+ ```python
  sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
     try:
         sock.connect((HOST,PORT))
@@ -189,12 +189,12 @@ def handle(conn, msg, rest):
   * 获取所有历史聊天记录
   * 获取所有历史发送文件名
 * 开启服务端数据监听
-  ```
+  ```python
   _thread.start_new_thread(listener,(sock,window))
   ```
   其中```listener```函数与```handle``` 类似，针对不同协议编号进行处理
   
-  ```
+  ```python
   def listener(sock,root):
     print("?? then ??")
     listen_this = [sock]
@@ -230,18 +230,18 @@ def handle(conn, msg, rest):
 
 ## 运行截图
 * 运行 ```client.py``` 初始界面
- [welcome](https://github.com/WxxShirley/Chatroom/blob/master/imgs/welcome.png)
+ ![welcome](https://github.com/WxxShirley/Chatroom/blob/master/imgs/welcome.png)
  
 * 点击注册
- [register](https://github.com/WxxShirley/Chatroom/blob/master/imgs/register.png)
+ ![register](https://github.com/WxxShirley/Chatroom/blob/master/imgs/register.png)
  
 * 多人聊天室主界面
   * 为简洁，只显示近五条聊天记录和发送的文件名。
-  * **friends**和 ** + ** 为待开发功能
- [main_page](https://github.com/WxxShirley/Chatroom/blob/master/imgs/main_page.png)
+  * **friends**为待开发功能
+ ![main_page](https://github.com/WxxShirley/Chatroom/blob/master/imgs/main_page.png)
  
 * 发送的内容多样化，包括文本信息、文件、表情
-  [send_files](https://github.com/WxxShirley/Chatroom/blob/master/imgs/send_files.png)
-  [send_message](https://github.com/WxxShirley/Chatroom/blob/master/imgs/send_message.png)
+  ![send_files](https://github.com/WxxShirley/Chatroom/blob/master/imgs/send_files.png)
+  ![send_message](https://github.com/WxxShirley/Chatroom/blob/master/imgs/send_message.png)
 
   
