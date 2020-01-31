@@ -123,7 +123,7 @@ def get_chat_history(sock,user):
         count = 0
         for msg in msgs:
             detail = msg.split("\t")
-            if len(detail)>=2 and count<3:
+            if len(detail)>=2 and count<5:
                 name = detail[0]
                 time = detail[1]
                 content = detail[2]
@@ -633,19 +633,30 @@ if __name__ == "__main__":
     fileListbox.bind('<Double-Button-1>',download_file)
 
 
-    cv1 = tk.Canvas(window, background='white', width=540, height=400, bd=1, highlightbackground='orange')
-    cv1.place(x=250, y=10)
-    #s_bar = tk.Scrollbar(window)
-    #s_bar.place(x=600,y=15,height=350)
-    text_recv = tk.Text(cv1, width=460, height=350,)
-    text_recv.place(x=10, y=10)
+    #cv1 = tk.Canvas(window, background='white', width=540, height=400, bd=1, highlightbackground='orange')
+    #cv1.place(x=250, y=10)
+    s_bar = Scrollbar(window,orient = "vertical")
+    s_bar.place(x=500,y=10,height=60)
+    text_recv = tk.Text(window, width=460, height=60)
+    text_recv.place(x=260, y=10,height=400)
     #text_recv.place(x=260,y=15)
-    #text_recv.config(yscrollcommand = s_bar.set)
+    text_recv.config(yscrollcommand = s_bar.set)
     # 3 colors to represent different kinds of msg
     text_recv.tag_config('green', foreground='#008b00')
     text_recv.tag_config('red', foreground='#FF0000')
     text_recv.tag_config('blue', foreground='#0000FF')
-    #s_bar.config(command=text_recv.yview)
+    s_bar.config(command=text_recv.yview)
+
+    '''
+    self.text_msg = Text(self.master,width=59,height=6)
+        self.text_msg.place(x=0,y=275)
+        self.sb0 = Scrollbar(self.master,orient = "vertical")
+        self.sb0.place(x=410,y=275,height=80)
+        self.text_msg.config(yscrollcommand = self.sb0.set)
+        self.sb0.config(command = self.text_msg.yview)
+    '''
+
+
 
     cv2 = tk.Canvas(window, background='white', width=540, height=160, bd=1, highlightbackground='orange')
     cv2.place(x=250, y=425)
