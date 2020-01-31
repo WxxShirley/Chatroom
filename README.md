@@ -94,8 +94,9 @@
 
  在设计的时候不足之处
  * 复用性考虑不足
+ 
    用户登陆成功后，需要首先获得聊天记录信息缓存、所有文件、该用户所有好友、与好友间聊天记录，
-   这些是分别用多个服务端请求实现。其实可以简化为一个请求
+   这些是分别用**多个服务端请求**实现。其实可以**简化为一个请求**
  * 安全性考虑不足。
    * 尚未实现协议加密
    * 数据完整性缺乏考虑。即便有的协议在头部包括了数据长度，在接受时也未判断接受的数据长度与实际长度是否一致。
@@ -104,14 +105,14 @@
 
 ## 整体架构
 ### 数据库关系模式
-* 用户信息
+* 用户信息 - 用户名、密码
   ```sql
      CREATE TABLE USERINFO
        (USERNAME TEXT PRIMARY KEY NOT NULL,
        PASSWORD TEXT NOT NULL);
   ```
   
-* 聊天信息
+* 聊天信息 - ID、发送方、时间、内容
   ```sql
      CREATE TABLE GROUP_CHAT_HISTORY
          ( ID TEXT PRIMARY KEY NOT NULL,
@@ -122,7 +123,7 @@
          );
    ```
 
-* 文件信息
+* 文件信息 - ID、发送方、时间、文件名、文件内容
   ```sql
      CREATE TABLE GROUP_FILE_HISTORY
         (ID TEXT PRIMARY KEY NOT NULL,
@@ -134,7 +135,7 @@
          );
   ```
 
-* 好友关系
+* 好友关系 - 用户1，用户2
   ```sql
   CREATE TABLE FRIENDS
     ( USERNAME1 TEXT NOT NULL,
@@ -145,7 +146,7 @@
     )
   ```
   
-*  好友间聊天记录
+*  好友间聊天记录 - ID、发送方、接收方、时间、内容
    ```sql
    CREATE TABLE HISTORY_PRIVATE_CHAT
     ( "id" INTEGER not NULL,
@@ -165,15 +166,8 @@
  * send - 发送消息（utf-8编码）格式，参数为socket, 消息头部, 消息内容
    ```python
    def send(socket,header,msg = b""):
-    """
-    :param socket: socket sending message
-    :param header: header flag, e.g. LOGIN 1 , LOGIN SUCCESS 101
-    :param msg:    message content
-    :return:
-    """
     byte_msg = bytes(header+"\n\n",encoding = 'utf-8') + msg
     socket.sendall(byte_msg)
-
    ```
 
 * receive - 接收消息，根据```\n\n```分割头部和消息，utf-8解码后返回
@@ -181,7 +175,7 @@
   def receive(sock):
     data = sock.recv(1024)
     for i in range(len(data)-1):
-        if data[i] == 10 and data[i+1] == 10 : #"\n\n"
+        if data[i] == 10 and data[i+1] == 10 : #"\n\n"分割头部和消息
             header = data[:i].decode("utf-8")
             rest = data[i+2:].decode("utf-8")
             return header, rest
@@ -196,7 +190,6 @@
 ### 服务端逻辑
 * 监听多个连接
   ```python
-  while True:
     reads, writes, errors = select.select(connections,[],[])
     for cur in reads:
         if cur == sock: #new connection
@@ -208,7 +201,7 @@
                except Exception as e:
                     release(cur) # release this connection
                     continue
-               handle(cur,data,rest)
+               handle(cur,data,rest) # handle client's request
    ```
 
 * handle函数处理
@@ -261,14 +254,7 @@
 
     while True:
         reads, writes, errors = select.select(listen_this,[],[])
-        for master in reads:
-            if master == sock:
-                try:
-                    data, rest = method.receive(master)
-                except Exception as e:
-                    messagebox.showerror('Error','Receive Error!')
-                    continue
-                    
+                    ···
                 msg_type = data[:3]
                 if msg_type == str(LOGIN_USERNAME):
                   ···
@@ -288,6 +274,7 @@
 └  database.py  % 数据库操作函数
 ```
 
+
 ## 运行截图
 * 运行 ```client.py``` 初始界面
  ![welcome](https://github.com/WxxShirley/Chatroom/blob/master/imgs/welcome.png)
@@ -296,7 +283,7 @@
  ![register](https://github.com/WxxShirley/Chatroom/blob/master/imgs/register.png)
  
 * 多人聊天室主界面
-  * 显示多人群聊中的近**5**条聊天聊天信息，系统消息（其他用户登陆/登出），其他用户发送的消息
+  * 显示多人群聊中的近**5**条聊天聊天信息，系统消息（其他用户登陆/登出），其他用户发送的消息，以不同颜色区分
   * 多人聊天室可传送文件、表情符号、文本
     * tkinter无法显示emoji，因此我采用诸如 **[emoji-cake]** 的形式来表征一个emoji，目前可以发送的emoji较少，后期会再拓展。
   * 以列表```Listbox```形式显示
