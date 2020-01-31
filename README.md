@@ -296,21 +296,45 @@
  ![register](https://github.com/WxxShirley/Chatroom/blob/master/imgs/register.png)
  
 * 多人聊天室主界面
-  * 为简洁，只显示近五条聊天记录和发送的文件名。
-  * **friends**为待开发功能
- ![main_page](https://github.com/WxxShirley/Chatroom/blob/master/imgs/main_page.png)
+  * 显示多人群聊中的近**5**条聊天聊天信息，系统消息（其他用户登陆/登出），其他用户发送的消息
+  * 多人聊天室可传送文件、表情符号、文本
+    * tkinter无法显示emoji，因此我采用诸如 **[emoji-cake]** 的形式来表征一个emoji，目前可以发送的emoji较少，后期会再拓展。
+  * 以列表```Listbox```形式显示
+    * 当前所有在线用户
+      * 随着**其他用户的登录/登出**而更新
+    * 该用户所有好友
+      * 点击“+”即可添加新好友
+      * 随其他用户增加该用户为好友/该用户添加新好友而更新
+      * 双击好友名可展开私聊
+    * 所有多人群聊中已传送的文件
+      * 用户双击文件名即可下载
+      * 随用户上传新文件而更新 
+  ![main_page](https://github.com/WxxShirley/Chatroom/blob/master/imgs_v2.0/mainPage.png)
  
-* 发送的内容多样化，包括文本信息、文件、表情。
-  其中tkinter无法显示emoji，因此我采用诸如 **[emoji-cake]** 的形式来表征一个emoji，目前可以发送的emoji较少，后期会再拓展。
-  ![send_files](https://github.com/WxxShirley/Chatroom/blob/master/imgs/send_files.png)
-  ![send_message](https://github.com/WxxShirley/Chatroom/blob/master/imgs/send_message.png)
+* 添加好友
+  * 用户输入想要添加好友的用户名，如果添加成功、另一方恰好在线，双方都有消息提示
+  * 否则根据 **用户名不存在** 、 **已经是好友关系** 、 **其他异常错误** 等发送错误信息给用户
+  ![add_friend1](https://github.com/WxxShirley/Chatroom/blob/master/imgs_v2.0/add_friend1.png)
+  ![add_friend2](https://github.com/WxxShirley/Chatroom/blob/master/imgs_v2.0/add_friend2.png)
+  ![add_friend3](https://github.com/WxxShirley/Chatroom/blob/master/imgs_v2.0/add_friend3.png)
 
+* 好友间私聊
+  * 双击好友名即可开始私聊
+  * 目前仅支持文本信息
+  * 所有聊天记录缓存
+  * 若私聊的另一方也在线，发送私聊信息后另一方也会弹出对话信息
+  ![friend_chat](https://github.com/WxxShirley/Chatroom/blob/master/imgs_v2.0/private_chat.png)
+  ![friend_chat1](https://github.com/WxxShirley/Chatroom/blob/master/imgs_v2.0/private_chat2.png)
+  ![friend_chat2](https://github.com/WxxShirley/Chatroom/blob/master/imgs_v2.0/private_chat3.png)
+
+* 文件下载
+  * 双击文件名即可下载
+  ![dowfile](https://github.com/WxxShirley/Chatroom/blob/master/imgs_v2.0/down_file.png)
+  
+  
   
 ## 未来工作
 待完善的功能 
-希望1月底可以完成💪
-- [ ] 用户间好友关系
-- [ ] 用户的个人信息中包括本地图片上传的头像
-- [ ] 实现群聊和私聊
+- [ ] 创建群组，实现群聊
  
  
