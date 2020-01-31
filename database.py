@@ -41,7 +41,29 @@ def init_database():
       );
     ''')
 
-    """
+    conn.execute('''CREATE TABLE FRIENDS
+    ( USERNAME1 TEXT NOT NULL,
+      USERNAME2 TEXT NOT NULL,
+      PRIMARY KEY (USERNAME1,USERNAME2),
+      FOREIGN KEY ("username1") REFERENCES userinfo("username")
+      FOREIGN KEY ("username2") REFERENCES userinfo("username")
+    )
+       
+    ''')
+
+
+
+    conn.execute('''CREATE TABLE HISTORY_PRIVATE_CHAT
+    ( "id" INTEGER not NULL,
+      "target_user" TEXT not NULL,
+      "source_user" TEXT not NULL,
+      "time" DATETIME not NULL,
+      "text" TEXT not NULL,
+      PRIMARY KEY("id"),
+      FOREIGN KEY ("target_user") REFERENCES "userinfo"("username")
+      FOREIGN KEY ("source_user") REFERENCES "userinfo"("username")
+    );''')
+     """
 
     conn.commit()
     conn.close()
@@ -62,6 +84,16 @@ def get_user_by_name(username):
         print('Database: cannot get user by username')
         return None
     return {'username':tups[0][0],'password':tups[0][1]}
+
+
+def get_file_by_name(filename):
+    tups = conn.execute('select * from group_file_history where filename = ?',(filename,)).fetchall()
+
+    if len(tups)!= 0:
+        return tups[0][4]
+    return None
+
+
 
 
 def add_user(username,password):
@@ -86,27 +118,17 @@ def get_all_users():
     return None
 
 def count_bigGroup_chat_len():
-    tups = conn.execute(
-        '''
-        select * from group_chat_history
-        '''
-    )
-    count = 0
-    for tup in tups:
-        count += 1
-    return count
+    num = conn.execute('''
+     select count(*) from group_chat_history
+    ''').fetchall()
+    return num[0][0]
 
 
 def count_bigGroup_file_len():
-    tups = conn.execute(
-        '''
-        select * from group_file_history
-        '''
-    )
-    count = 0
-    for tup in tups:
-        count += 1
-    return count
+    num = conn.execute('''
+        select count(*) from group_file_history
+        ''').fetchall()
+    return num[0][0]
 
 
 
@@ -132,6 +154,49 @@ def add_bigGroup_chat_history(sender,text):
     )
     print("add success")
     return "insert success"
+
+
+def count_privateChat_num():
+    ans = conn.execute('''
+     select count(*) from history_private_chat
+    ''').fetchall()
+    return ans[0][0]
+
+
+def add_privateChat_history(sender,receiver,message):
+    # check sender and receiver
+    username1 = get_user_by_name(sender)
+    username2 = get_user_by_name(receiver)
+
+    if username1 is None or username2 is None:
+        print("user name not found")
+        return "insert fail"
+
+    count_num = count_privateChat_num()
+    id = count_num + 1
+    msg_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    conn.execute(
+        '''
+        insert into history_private_chat(id,target_user,source_user,time,text)
+        values(?,?,?,?,?)
+        ''',
+        (id,receiver,sender,msg_time,message)
+    )
+    return "insert succ"
+
+def get_privatechat_history(user1,user2):
+    tups1 = conn.execute(' select * from history_private_chat where source_user = ? and target_user = ? order by time desc',(user1,user2,)).fetchall()
+    tups2 = conn.execute('select * from history_private_chat where source_user = ? and target_user = ? order by time desc',(user2,user1,)).fetchall()
+
+    lists = []
+    for tup in tups1:
+        lists.append([tup[2],tup[3],tup[4]])
+    for tup in tups2:
+        lists.append([tup[2],tup[3],tup[4]])
+    lists.sort(key = lambda x:x[1])
+    # lists结构： [发送方，时间，内容]
+    return lists
+
 
 
 def add_bigGroup_file_history(sender,file_name,file_content):
@@ -194,8 +259,51 @@ def get_file_history():
     return msg
 
 
+def get_friends(username):
+    #  tups = conn.execute('select * from userinfo where username = ?',(username,)).fetchall()
+    tups = conn.execute('select * from friends where username1 = ?',(username,)).fetchall()
+
+    tups_ = conn.execute('select * from friends where username2 = ?',(username,)).fetchall()
+    res = [tup[1] for tup in tups]
+
+    for tup in tups_:
+        if tup[0] not in res:
+            res.append(tup[0])
+    return res
+
+
+def add_friend(sender,replyer):
+    # insert into group_file_history(id,source_user,time,filename,filecontent)
+    conn.execute('''
+     insert into friends(username1,username2)
+     values(?,?)
+    ''',(sender,replyer))
+
+
+    return "add succ"
+
+
+
 
 if __name__ == "__main__":
     #init_database()
-    tups = get_file_history()
-    print(tups)
+    #ans = get_friends("xixi")
+    #for a in ans:
+    #    print(a,end = ' ')
+
+    #file = get_file_by_name("QuickFindUF.java")
+    #print(file)
+    #print(len(file))
+    #ans = count_privateChat_num()
+    #print(ans)
+
+    """
+    chats = get_privatechat_history("xixi", "mama")
+    for chat in chats:
+        print(chat)
+
+    tups = conn.execute('select * from history_private_chat').fetchall()
+    for tup in tups:
+        print(tup[0],tup[1],tup[2],tup[3],tup[4])
+    """
+    print(get_friends("aerber"))

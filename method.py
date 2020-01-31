@@ -16,8 +16,6 @@ def send(socket,header,msg = b""):
     :return:
     """
     byte_msg = bytes(header+"\n\n",encoding = 'utf-8') + msg
-    if header == str(LOGIN_USERNAME):
-        print("-->boradcast info :",byte_msg)
     socket.sendall(byte_msg)
 
 
@@ -40,9 +38,7 @@ def read_file(file_path):
     :return: file content
     """
     with open(file_path,"rb") as f:
-        lines = f.readline()
-
-
+        lines = f.read()
     return lines
 
 
@@ -54,13 +50,8 @@ def upload_file(sock,file_path,receiver):
     if file_size > MAX_FILE_SIZE:
         return False
 
-    file_info = str(SEND_FILE) + receiver + "\r\n" + filename + "\r\n" +str(file_size)
-    #print("file path: ",file_path)
-    #print("file_info: ",file_info)
-    #print("file_name: ",filename)
-    #print("file_size: ",file_size)
+    file_info = "{0}{1}\r\n{2}\r\n{3}".format(str(SEND_FILE),receiver,filename,file_size)
     file_content = read_file(file_path)
-
     send(sock,file_info,file_content)
 
     return True

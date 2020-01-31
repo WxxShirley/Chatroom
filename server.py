@@ -41,8 +41,16 @@ def release(conn):
     # del this from CONNECTIONS
     connections.remove(conn)
 
+    if user2conn.get(conn2user[conn])==conn:
+        user = conn2user[conn]
+        rest = user.encode("utf-8")
+        broadcast(conn,str(LOGOUT_INFO),rest)
+        del user2conn[user]
+
+
     # close this
     conn.close()
+    del conn2user[conn]
 
 
 # HANDLE MESSAGE
@@ -54,6 +62,61 @@ def handle(conn, msg, rest):
         print("!! wrong request",e)
         send(conn,str(WRONG_MESSAGE))
         return
+
+    #print(msg[:2])
+
+    if len(msg)>=2 and  int(msg[0])==9 and int(msg[1])==9 :
+        print("in downfile")
+        try:
+            user,choice_file = rest.split("\r\n")
+            assert user.find("\t")==-1
+            assert choice_file.find("\t")==-1
+        except Exception as e:
+            print("split downfile error ",e)
+            method.send(conn,str(DOWNFILE_ERROR))
+            return
+
+        file_content = get_file_by_name(choice_file)
+        if file_content is not None:
+            header = str(DOWNFILE_SUCCESS) + choice_file
+
+            method.send(conn,header,file_content)
+            return
+        else :
+            print("file not exist")
+            method.send(conn,str(DOWNFILE_ERROR))
+            return
+
+    if len(msg)>=2 and int(msg[0])==9 and int(msg[1])==8:
+        print("in init private chat history")
+        user1,user2 = msg[2:].split("\r\n")
+
+        assert user1==conn2user[conn]
+
+        # chat结构： [发送方，时间，内容]
+        chats = get_privatechat_history(user1,user2)
+        if len(chats)>0:
+            msg = ""
+            for chat in chats:
+                cont_ = chat[0]+"\t"+chat[1]+"\t"+chat[2]
+                msg += cont_
+                if chats.index(chat) != len(chats)-1 :
+                    msg += "\r\n"
+            header = str(PRIVATE_INIT_SUCCESS) + user1 + "\r\n" + user2
+            print("msg: ",msg)
+            msg = msg.encode("utf-8")
+            try:
+                method.send(conn,header,msg)
+            except Exception as e:
+                print("send private chat history error ",e)
+                method.send(conn,str(PRIVATE_INIT_ERROR))
+            return
+        else :
+            header = str(PRIVATE_INIT_NONE) + user1 + "\r\n" + user2
+            method.send(conn,header,)
+            return
+
+
 
     if type == REGISTER:
         # msg = str(REGISTER) + user + "\r\n" + pwd
@@ -106,23 +169,47 @@ def handle(conn, msg, rest):
             sender = conn2user[conn]
             text = msg[1:]
             receiver, length = text.split("\r\n")
-            length = int(length)
+            print("in SEND_MESSAGE_STEP, receiver = {0}, sender = {1}, message content = {2}".format(receiver,sender,rest))
+            #length = int(length)
             if len(receiver)==0 :
-                #bigGroup_sendMSG(conn,rest,sender)
-                header = str(SEND_MESSAGE_ALL) + sender + "\r\n" + str(length)
+                print("in bigGroup")
+                header = str(SEND_MESSAGE_ALL) + sender + "\r\n" + length
+                print("header: ",header)
                 text = rest.encode("utf-8")
+                print("in this steo")
                 add_bigGroup_chat_history(sender, rest)
-
+                print("succ insert into big group chat history")
                 try:
                     broadcast(conn, header, text)
+                    return
                 except Exception as e:
                     print("send message error(during broadcast,", e)
                     header = str(SEND_ERROR)
                     method.send(conn, header)
                 return
 
+            else :
+                send_sock = user2conn.get(receiver)
+
+                if send_sock is None: #用户不在线，把聊天信息缓存给该用户
+                    add_privateChat_history(sender,receiver,rest)
+                    # 提示消息已经缓存
+                    print("message is stored")
+                    msg = receiver.encode("utf-8")
+                    method.send(conn,str(SEND_MESSAGE_PER_STORE),msg)
+                    return
+                else :
+                    add_privateChat_history(sender,receiver,rest)
+                    try:
+                        msg = sender + "\r\n" +rest
+                        msg = msg.encode("utf-8")
+                        method.send(send_sock,str(SEND_MESSAGE_PER),msg)
+                    except Exception as e:
+                        print("send private chat error {0}, receiver: {1}".format(e,receiver))
+                    return
+
         except Exception as e:
-            print("Wrong message",e)
+            print("Wrong message， ",e)
             state = str(WRONG_MESSAGE)
             send(conn,state)
             return
@@ -192,8 +279,8 @@ def handle(conn, msg, rest):
             print("sending header,",header)
             try:
                 broadcast(conn,header,file_content)
-                raw_content = file_content.decode("utf-8")
-                add_bigGroup_file_history(sender,filename,raw_content)
+                #raw_content = file_content.decode("utf-8")
+                add_bigGroup_file_history(sender,filename,file_content)
             except Exception as e:
                 print("broadcast error (during sending file) ",e)
                 method.send(conn,str(SEND_FILE_ERROR))
@@ -211,6 +298,74 @@ def handle(conn, msg, rest):
             print("send files history error,",e)
 
         return
+
+    elif type == ADD_FRIEND:
+        try:
+            sender,replyer = rest.split("\r\n")
+            assert(sender.find("\t")==-1)
+            assert(replyer.find("\t")==-1)
+        except Exception as e:
+            print("split user and friend-name error ",e)
+            method.send(conn,str(ADD_FRIEND_ERROR))
+            return
+
+        if get_user_by_name(replyer) is None:
+            print("friend's name not exist")
+            method.send(conn,str(USERNAME_NOT_EXIST))
+            return
+
+        friends = get_friends(sender)
+        if replyer in friends:
+            print("already friends")
+            method.send(conn,str(ALREADY_ADD_ERROR))
+            return
+
+        state = add_friend(sender,replyer)
+        print("new friend: ",replyer)
+        if state == "add succ":
+            msg = replyer.encode("utf-8")
+            try:
+                method.send(conn,str(ADD_FRIEND_SUCCESS),msg)
+                print("send reminder")
+                if user2conn.get(replyer) is not None:
+                    # 如果对方在线，要实时更新
+                    sock_ = user2conn[replyer]
+                    msg_ = sender.encode("utf-8")
+                    method.send(sock_,str(ADD_FRIEND_REMIND),msg_)
+                return
+
+            except Exception as e:
+                print("send add-friend reply error ",e)
+                method.send(conn, str(ADD_FRIEND_ERROR))
+            return
+        else :
+            method.send(conn, str(ADD_FRIEND_ERROR))
+            print("database error")
+
+
+    elif type == SHOW_ALL_FRIENDS:
+        u = rest
+        u_ = conn2user[conn]
+        #assert u==u_
+        print(u,u_)
+        friends = get_friends(u)
+        if len(friends)==0:
+            print("has no friends ")
+            method.send(conn,str(NO_FRIENDS))
+            return
+
+        msg = "\r\n".join(friends)
+        try:
+            print(msg)
+            method.send(conn,str(SHOW_FRIENDS_SUCCESS),msg.encode("utf-8"))
+        except Exception as e:
+            print("send all friends error",e)
+            method.send(conn,str(SHOW_FRIENDS_ERROR))
+            return
+
+
+
+
 
 
 
@@ -258,5 +413,6 @@ if __name__ == "__main__":
                 else :
                     print("!!Error: receive data error")
                     release(cur)
+
 
     sock.close()
