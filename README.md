@@ -6,12 +6,12 @@
 * tkinter
 
 ## 运行方法
-* 初始化数据库,执行```database.py```文件中的```init_database()```函数
-* 启动客户端
+* 初始化数据库,执行```database.py```文件中的```init_database()```函数(`main`中其他要注释)
+* 启动服务端
   ```python server.py```
-* 再启动服务端
+* 再启动客户端
   ```python client.py```
-  服务端可并行，可开启多个服务端
+  客户端可并行
 
 ## 功能 version2.0
 目前已经实现的功能有：
