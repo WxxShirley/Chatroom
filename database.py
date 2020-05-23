@@ -6,8 +6,8 @@ conn = sqlite3.connect('database.db',isolation_level = None)
 
 def init_database():
     #conn = sqlite3.connect("database.db")
-    #c = conn.cursor()
-    """
+    c = conn.cursor()
+   
     c.execute('''CREATE TABLE USERINFO
      (USERNAME TEXT PRIMARY KEY NOT NULL,
      PASSWORD TEXT NOT NULL);
@@ -63,7 +63,6 @@ def init_database():
       FOREIGN KEY ("target_user") REFERENCES "userinfo"("username")
       FOREIGN KEY ("source_user") REFERENCES "userinfo"("username")
     );''')
-     """
 
     conn.commit()
     conn.close()
@@ -286,7 +285,7 @@ def add_friend(sender,replyer):
 
 
 if __name__ == "__main__":
-    #init_database()
+    init_database()
     #ans = get_friends("xixi")
     #for a in ans:
     #    print(a,end = ' ')
@@ -296,7 +295,8 @@ if __name__ == "__main__":
     #print(len(file))
     #ans = count_privateChat_num()
     #print(ans)
-
+    
+    # test code
     """
     chats = get_privatechat_history("xixi", "mama")
     for chat in chats:
@@ -305,5 +305,6 @@ if __name__ == "__main__":
     tups = conn.execute('select * from history_private_chat').fetchall()
     for tup in tups:
         print(tup[0],tup[1],tup[2],tup[3],tup[4])
-    """
+   
     print(get_friends("aerber"))
+    """
